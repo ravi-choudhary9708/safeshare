@@ -7,7 +7,7 @@ const UploadSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
- fileUrl: {
+  fileUrl: {
     type: String,
     required: true,
   },
@@ -15,7 +15,18 @@ const UploadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-   publicId: {
+  mode: {
+    type: String,
+    enum: ['print', 'share'],
+    required: true
+  },
+  access: {
+    type: String,
+    enum: ['view', 'download'],
+    default: 'view'
+  }, // for 'share' mode only
+
+  publicId: {
     type: String,
     required: true,
   },

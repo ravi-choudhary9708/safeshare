@@ -4,6 +4,8 @@ import { useState } from "react";
 export default function Home() {
   const [file, setFile] = useState(null);
   const [otp, setOtp] = useState("");
+  const [mode, setMode] = useState("")
+  const [access, setAccess] = useState("")
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -45,6 +47,23 @@ export default function Home() {
         >
           Upload
         </button>
+
+  <select value={mode} onChange={(e) => setMode(e.target.value)} required>
+  <option value="">Select Mode</option>
+  <option value="print">Print Only</option>
+  <option value="share">Share</option>
+</select>
+
+{mode === 'share' && (
+  <select value={access} onChange={(e) => setAccess(e.target.value)} required>
+    <option value="">Access Level</option>
+    <option value="view">View Only</option>
+    <option value="download">View & Download</option>
+  </select>
+)}
+
+
+
         {otp && (
           <p className="mt-4 text-green-600">
             Your OTP: <strong>{otp}</strong>

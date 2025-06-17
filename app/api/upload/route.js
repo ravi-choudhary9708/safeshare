@@ -13,6 +13,10 @@ export async function POST(req) {
     const formData = await req.formData();
     const file = formData.get('file');
 
+    const mode = formData.get('mode'); // 'print' or 'share'
+    const access = formData.get('access') || 'view';
+
+
 const fileName = file.name.replace(/\s/g, '')
       console.log("filename",fileName)
 
@@ -55,6 +59,8 @@ const fileName = file.name.replace(/\s/g, '')
       otp,
       fileUrl: result.secure_url,
       publicId: result.public_id,
+       mode,
+      access,
     });
 
     return NextResponse.json({ message: 'File uploaded', otp ,fileName});

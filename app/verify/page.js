@@ -104,13 +104,24 @@ export default function VerifyPage() {
               >
                 View File
               </a>
-              
+               {file.mode === 'share' && file.access === 'download' && (
               <button
                 onClick={handleDownload}
                 className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
               >
                 Download File
               </button>
+                  )}
+
+                   {file.mode === 'share' && (
+      <a
+        href={`https://wa.me/?text=${encodeURIComponent(`Here is your file: ${file.fileUrl}`)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Share via WhatsApp
+      </a>
+    )}
             </div>
           </div>
         )}
