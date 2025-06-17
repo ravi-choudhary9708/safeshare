@@ -1,43 +1,67 @@
 import { NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs/promises';
 import { dbConnect } from '@/lib/dbConnect';
 import Upload from '@/models/Upload';
+
 import { generateOtp } from '@/utils/generateOtp';
+import { Readable } from 'stream';
+import { cloudinary } from '@/lib/cloudinary'; 
 
-const uploadDir = 'public/uploads';
-
+// 🔁 Parse FormData in App Router
 export async function POST(req) {
   try {
+    // 1. Parse formData and get file
     const formData = await req.formData();
     const file = formData.get('file');
 
-    if (!file || typeof file === 'string') {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+const fileName = file.name.replace(/\s/g, '')
+      console.log("filename",fileName)
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const ext = file.name.split('.').pop().toLowerCase();
-    const allowed = ['pdf', 'docx', 'jpg', 'jpeg', 'png'];
-    if (!allowed.includes(ext)) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
-    }
-
+    // 2. Read the file into a buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const filename = Date.now() + '-' + file.name;
 
-    const savePath = path.join(process.cwd(), uploadDir, filename);
-    await fs.writeFile(savePath, buffer);
-
+    // 3. Connect DB
     await dbConnect();
+
+    // 4. Upload to Cloudinary
+    const streamUpload = () => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'raw',
+            folder: 'fileUpload', // ✅ Cloudinary folder
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+
+        Readable.from(buffer).pipe(stream);
+      });
+    };
+
+    const result = await streamUpload(); // wait for Cloudinary result
+
+    // 5. Generate OTP and save to DB
     const otp = generateOtp();
 
-    await Upload.create({ otp, fileName: filename });
+    await Upload.create({
+      fileName,
+      otp,
+      fileUrl: result.secure_url,
+      publicId: result.public_id,
+    });
 
-    return NextResponse.json({ message: 'Uploaded successfully', otp });
+    return NextResponse.json({ message: 'File uploaded', otp ,fileName});
   } catch (err) {
-    console.error('Upload error:', err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Upload failed', details: err.message }, { status: 500 });
   }
 }
+
 

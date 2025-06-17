@@ -8,6 +8,8 @@ export default function Home() {
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return alert("Please select a file.");
+    
+    
 
     const formData = new FormData();
     formData.append("file", file);
