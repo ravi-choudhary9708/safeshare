@@ -1,6 +1,7 @@
 import { dbConnect } from '@/lib/dbConnect';
 import Upload from '@/models/Upload';
 import { NextResponse } from 'next/server';
+import { cloudinary } from '@/lib/cloudinary';
 
 export async function POST(req) {
   try {
@@ -16,7 +17,7 @@ export async function POST(req) {
     }
 
     
-  console.log("filemode",file.mode);
+  console.log("file",file);
 
     // If download is requested
     if (download) {
@@ -27,7 +28,18 @@ export async function POST(req) {
       }
 
       const buffer = await response.arrayBuffer();
+
       
+// ✅ Delete in background (non-blocking)
+  cloudinary.uploader.destroy(file.publicId, { resource_type: 'raw' })
+    .then(() => console.log('✅ Cloudinary file deleted'))
+    .catch(err => console.error('❌ Cloudinary delete error:', err));
+
+  Upload.deleteOne({ otp })
+    .then(() => console.log('✅ DB record deleted'))
+    .catch(err => console.error('❌ DB delete error:', err));
+
+     
       return new NextResponse(buffer, {
         headers: {
           'Content-Disposition': `attachment; filename="${file.fileName || 'download.jpg'}"`,
@@ -36,6 +48,12 @@ export async function POST(req) {
       });
     }
 
+
+
+
+
+
+
     // Regular response for viewing
     return NextResponse.json({ 
       fileUrl: file.fileUrl,
@@ -43,6 +61,10 @@ export async function POST(req) {
       mode:file.mode,
       access:file.access
     });
+
+
+    
+
 
   } catch (err) {
     console.error(err);

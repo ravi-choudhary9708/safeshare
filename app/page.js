@@ -6,9 +6,11 @@ export default function Home() {
   const [otp, setOtp] = useState("");
   const [mode, setMode] = useState("")
   const [access, setAccess] = useState("")
+  const [loading, setloading] = useState(false)
 
   const handleUpload = async (e) => {
     e.preventDefault();
+    
     if (!file) return alert("Please select a file.");
     
     
@@ -17,6 +19,7 @@ export default function Home() {
     formData.append("file", file);
     formData.append("mode", mode);
     formData.append("access", access);
+    setloading(true);
 
     const res = await fetch("/api/upload", {
       method: "POST",
@@ -29,6 +32,7 @@ export default function Home() {
     } else {
       alert(data.error);
     }
+    setloading(false)
   };
 
   return (
@@ -47,7 +51,7 @@ export default function Home() {
           type="submit"
           className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded w-full"
         >
-          Upload
+         {loading? "uploading...": "upload"} 
         </button>
 
   <select value={mode} onChange={(e) => setMode(e.target.value)} required>
@@ -70,7 +74,19 @@ export default function Home() {
           <p className="mt-4 text-green-600">
             Your OTP: <strong>{otp}</strong>
           </p>
+
+          
         )}
+       {otp && file && mode === 'share' && (
+      <a className='bg-yellow-400 px-4 py-2 rounded hover:bg-amber-700 text-black'
+        href={`https://wa.me/?text=${encodeURIComponent(`Here is your file: ${file.fileUrl}`)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Share via WhatsApp
+      </a>
+        )}
+       
       </form>
     </div>
   );
