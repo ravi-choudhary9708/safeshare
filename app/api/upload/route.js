@@ -15,11 +15,12 @@ export async function POST(req) {
 
     const mode = formData.get('mode'); // 'print' or 'share'
     const access = formData.get('access') || 'view';
+    console.log("mode",mode)
+    console.log("access",access)
 
 
 const fileName = file.name.replace(/\s/g, '')
-      console.log("filename",fileName)
-
+     
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
@@ -60,7 +61,7 @@ const fileName = file.name.replace(/\s/g, '')
       fileUrl: result.secure_url,
       publicId: result.public_id,
        mode,
-      access,
+       access,
     });
 
     return NextResponse.json({ message: 'File uploaded', otp ,fileName});

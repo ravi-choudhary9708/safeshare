@@ -16,7 +16,7 @@ export async function POST(req) {
     }
 
     
-  
+  console.log("filemode",file.mode);
 
     // If download is requested
     if (download) {
@@ -39,7 +39,9 @@ export async function POST(req) {
     // Regular response for viewing
     return NextResponse.json({ 
       fileUrl: file.fileUrl,
-      fileName: file.fileName || 'null'
+      fileName: file.fileName || 'null',
+      mode:file.mode,
+      access:file.access
     });
 
   } catch (err) {

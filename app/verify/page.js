@@ -33,6 +33,8 @@ export default function VerifyPage() {
     setLoading(false);
   };
 
+  
+
   const handleDownload = async () => {
     try {
       const res = await fetch('/api/verify', {
@@ -114,7 +116,7 @@ export default function VerifyPage() {
                   )}
 
                    {file.mode === 'share' && (
-      <a
+      <a className='bg-yellow-400 px-4 py-2 rounded hover:bg-amber-700 text-black'
         href={`https://wa.me/?text=${encodeURIComponent(`Here is your file: ${file.fileUrl}`)}`}
         target="_blank"
         rel="noopener noreferrer"

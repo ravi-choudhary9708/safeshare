@@ -15,6 +15,8 @@ export default function Home() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("mode", mode);
+    formData.append("access", access);
 
     const res = await fetch("/api/upload", {
       method: "POST",
