@@ -12,7 +12,7 @@ export default function VerifyPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/verify', {
+      const res = await fetch('/api/verify/print', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ otp }),
@@ -37,10 +37,10 @@ export default function VerifyPage() {
 
   const handleDownload = async () => {
     try {
-      const res = await fetch('/api/verify', {
+      const res = await fetch('/api/verify/shareFile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp, download: true }),
+        body: JSON.stringify({ otp }),
       });
 
       if (res.ok) {

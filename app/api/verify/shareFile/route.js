@@ -5,7 +5,7 @@ import { cloudinary } from '@/lib/cloudinary';
 
 export async function POST(req) {
   try {
-    const { otp, download } = await req.json();
+    const { otp } = await req.json();
     await dbConnect();
 
     const file = await Upload.findOne({ otp });
@@ -19,8 +19,8 @@ export async function POST(req) {
     
   console.log("file",file);
 
-    // If download is requested
-    if (download) {
+   
+    
       const response = await fetch(file.fileUrl);
       
       if (!response.ok) {
@@ -46,24 +46,9 @@ export async function POST(req) {
           'Content-Type': response.headers.get('content-type') || 'image/jpeg',
         },
       });
-    }
-
-
-
-
-
-
-
-    // Regular response for viewing
-    return NextResponse.json({ 
-      fileUrl: file.fileUrl,
-      fileName: file.fileName || 'null',
-      mode:file.mode,
-      access:file.access
-    });
-
-
     
+
+
 
 
   } catch (err) {
