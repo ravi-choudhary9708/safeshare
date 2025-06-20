@@ -2,13 +2,15 @@ import { dbConnect } from '@/lib/dbConnect';
 import Upload from '@/models/Upload';
 import { NextResponse } from 'next/server';
 import { cloudinary } from '@/lib/cloudinary';
+import { v4 as uuidv4 } from 'uuid';
+import TraceLog from '@/models/Trace';
 
 export async function POST(req) {
   try {
-    const { otp } = await req.json();
+    const { otp ,fileId} = await req.json();
     await dbConnect();
 
-    const file = await Upload.findOne({ otp });
+    const file = await Upload.findOne({ otp, publicId: fileId });
    
    
 
@@ -17,7 +19,8 @@ export async function POST(req) {
     }
 
     
-  console.log("file",file);
+  console.log("fileid",fileId);
+  console.log("file uploader",file.uploaderId);
 
    
     
@@ -26,6 +29,25 @@ export async function POST(req) {
       if (!response.ok) {
         return NextResponse.json({ error: 'File not found' }, { status: 404 });
       }
+
+  await TraceLog.create({
+  uploaderId: file.uploaderId, // from Upload DB
+  fileDeleted: true,           // or false depending on file.mode
+  ip: req.headers.get("x-forwarded-for")?.split(',')[0] || "Unknown IP",
+  userAgent: req.headers.get("user-agent") || "Unknown Agent",
+  otpUsed: otp,
+  accessTime: new Date(),
+  ...(file.mode === 'share' ? {
+    fileName: file.fileName,
+    fileUrl: file.fileUrl,
+    publicId: file.publicId,
+    fileDeleted: false
+  } : {
+    fileDeleted: true // no file info stored
+  })
+});
+
+
 
       const buffer = await response.arrayBuffer();
 

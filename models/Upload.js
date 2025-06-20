@@ -30,6 +30,10 @@ const UploadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  uploaderId: {
+    type: String,
+    required: true,
+  },
   uploadedAt: {
     type: Date,
     default: Date.now,

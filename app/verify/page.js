@@ -1,11 +1,17 @@
 'use client';
 import { useState } from 'react';
+ import { useSearchParams } from 'next/navigation';
 
 export default function VerifyPage() {
   const [otp, setOtp] = useState('');
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+ 
+
+   const searchParams = useSearchParams();
+  const fileId = searchParams.get('fileId');
+  console.log("fileid",fileId)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,7 +46,7 @@ export default function VerifyPage() {
       const res = await fetch('/api/verify/shareFile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp }),
+        body: JSON.stringify({ otp ,fileId}),
       });
 
       if (res.ok) {
@@ -115,15 +121,7 @@ export default function VerifyPage() {
               </button>
                   )}
 
-                   {file.mode === 'share' && (
-      <a className='bg-yellow-400 px-4 py-2 rounded hover:bg-amber-700 text-black'
-        href={`https://wa.me/?text=${encodeURIComponent(`Here is your file: ${file.fileUrl}`)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Share via WhatsApp
-      </a>
-    )}
+                  
             </div>
           </div>
         )}
