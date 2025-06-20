@@ -10,6 +10,10 @@ export async function POST(req) {
     const { otp ,fileId} = await req.json();
     await dbConnect();
 
+    if (!otp || !fileId || typeof fileId === null) {
+  return NextResponse.json({ error: 'OTP and File ID required' }, { status: 400 });
+}
+
     const file = await Upload.findOne({ otp, publicId: fileId });
    
    
