@@ -5,7 +5,8 @@ import { signJWT } from '@/lib/jwt';
 import { generateOtp } from '@/utils/generateOtp';
 import { Readable } from 'stream';
 import { cloudinary } from '@/lib/cloudinary'; 
-import { verifyJWT } from '@/lib/jwt'; // ✅ add this line
+import { verifyJWT } from '@/lib/jwt'; 
+import { encryptBuffer } from '@/utils/aes';
 
 
 // 🔁 Parse FormData in App Router
@@ -40,6 +41,17 @@ const fileName = file.name.replace(/\s/g, '')
     // 3. Connect DB
     await dbConnect();
 
+    
+    // 5. Generate OTP and save to DB
+    const otp = generateOtp();
+
+     // Encrypt the file
+    const { encryptedBuffer, salt, iv } = await encryptBuffer(buffer, otp);
+
+    
+console.log("Plain size:", buffer.length);
+console.log("Encrypted size:", encryptedBuffer);
+
     // 4. Upload to Cloudinary
     const streamUpload = () => {
       return new Promise((resolve, reject) => {
@@ -54,14 +66,12 @@ const fileName = file.name.replace(/\s/g, '')
           }
         );
 
-        Readable.from(buffer).pipe(stream);
+        Readable.from(encryptedBuffer).pipe(stream);
       });
     };
 
     const result = await streamUpload(); // wait for Cloudinary result
 
-    // 5. Generate OTP and save to DB
-    const otp = generateOtp();
 
 
 console.log("upload token",token)
@@ -89,6 +99,8 @@ if (token) {
        mode,
        access,
        uploaderId,
+      salt,
+      iv,
     });
 
       // ✅ send token back
@@ -101,9 +113,9 @@ if (token) {
     if (!token) {
   // Only create token if client didn't send any token
   const newToken = signJWT({ uploaderId });
-  return NextResponse.json({ message: 'File uploaded', otp ,fileName, token: newToken,  publicId: result.public_id });
+  return NextResponse.json({ message: 'File uploaded', otp ,fileName, token: newToken,  publicId: result.public_id, fileUrl: result.secure_url, });
 } else {
-  return NextResponse.json({ message: 'File uploaded', otp ,fileName, token,  publicId: result.public_id });// Return same token back
+  return NextResponse.json({ message: 'File uploaded', otp ,fileName, token,  publicId: result.public_id, fileUrl: result.secure_url, });// Return same token back
 }
 
 

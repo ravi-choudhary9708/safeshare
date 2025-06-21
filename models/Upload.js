@@ -34,6 +34,8 @@ const UploadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  salt:String,
+  iv:String,
   uploadedAt: {
     type: Date,
     default: Date.now,

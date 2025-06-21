@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { cloudinary } from '@/lib/cloudinary';
 import { v4 as uuidv4 } from 'uuid';
 import TraceLog from '@/models/Trace';
+import { decryptBuffer } from '@/utils/aes';
 
 export async function POST(req) {
   try {
@@ -22,9 +23,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Invalid OTP' }, { status: 404 });
     }
 
-    
-  console.log("fileid",fileId);
-  console.log("file uploader",file.uploaderId);
+
 
    
     
@@ -33,6 +32,14 @@ export async function POST(req) {
       if (!response.ok) {
         return NextResponse.json({ error: 'File not found' }, { status: 404 });
       }
+
+       const encryptedBuffer = Buffer.from(await response.arrayBuffer());
+      const decryptedBuffer = await decryptBuffer(encryptedBuffer, otp, file.iv, file.salt);
+
+      console.log('file.iv:', file.iv);
+console.log('file.salt:', file.salt);
+
+
 
   await TraceLog.create({
   uploaderId: file.uploaderId, // from Upload DB
@@ -53,8 +60,6 @@ export async function POST(req) {
 
 
 
-      const buffer = await response.arrayBuffer();
-
       
 // ✅ Delete in background (non-blocking)
   cloudinary.uploader.destroy(file.publicId, { resource_type: 'raw' })
@@ -66,7 +71,7 @@ export async function POST(req) {
     .catch(err => console.error('❌ DB delete error:', err));
 
      
-      return new NextResponse(buffer, {
+      return new NextResponse(decryptedBuffer, {
         headers: {
           'Content-Disposition': `attachment; filename="${file.fileName || 'download.jpg'}"`,
           'Content-Type': response.headers.get('content-type') || 'image/jpeg',

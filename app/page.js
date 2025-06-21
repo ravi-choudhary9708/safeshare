@@ -32,6 +32,7 @@ export default function Home() {
     });
 
     const data = await res.json();
+    console.log("data baba",data)
     if (res.ok) {
       setOtp(data.otp);
       setpublicId(data.publicId)
@@ -98,6 +99,13 @@ export default function Home() {
 
  {otp && publicId && mode=== "share" && (
       <>
+       <div className="border rounded-lg p-4">
+              <img 
+                src={file.fileUrl} 
+                alt="File preview" 
+                className="w-full max-h-64 object-contain rounded"
+              />
+            </div>
         <p className="mb-2">🔗 Shareable Link:</p>
         <div className="flex gap-2 items-center">
           <input
