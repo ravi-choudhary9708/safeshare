@@ -71,12 +71,16 @@ console.log('file.salt:', file.salt);
     .catch(err => console.error('❌ DB delete error:', err));
 
      
-      return new NextResponse(decryptedBuffer, {
+
+  return new NextResponse(decryptedBuffer, {
         headers: {
           'Content-Disposition': `attachment; filename="${file.fileName || 'download.jpg'}"`,
           'Content-Type': response.headers.get('content-type') || 'image/jpeg',
         },
       });
+
+
+
     
 
 

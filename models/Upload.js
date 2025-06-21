@@ -30,6 +30,11 @@ const UploadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  mimeType: {
+    type: String,
+    required: true,
+  },
+   fileSize: Number,
   uploaderId: {
     type: String,
     required: true,

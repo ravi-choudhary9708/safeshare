@@ -16,6 +16,23 @@ export default function Home() {
     
     const token = localStorage.getItem("safeshare_token");
 
+      console.log("File type:", file.type);
+     console.log("File name:", file.name);
+  
+  // Supported file types
+  const supportedTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'text/plain',
+    'application/msword'
+  ];
+  
+  if (!supportedTypes.includes(file.type)) {
+    alert('Unsupported file type!');
+    return;
+  }
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("mode", mode);

@@ -18,6 +18,10 @@ export async function POST(req) {
 
     const mode = formData.get('mode'); // 'print' or 'share'
     const access = formData.get('access') || 'view';
+
+       const fileName = file.name.replace(/\s/g, '');
+     const mimeType = file.type; // ⭐ Ye line add karo
+     const fileSize = file.size; // ⭐ Optional
     
 
     const authHeader = req.headers.get('authorization'); // ✅ correct way
@@ -28,7 +32,6 @@ export async function POST(req) {
     console.log("access",access)
 
 
-const fileName = file.name.replace(/\s/g, '')
      
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -59,6 +62,7 @@ console.log("Encrypted size:", encryptedBuffer);
           {
             resource_type: 'raw',
             folder: 'fileUpload', // ✅ Cloudinary folder
+            timeout: 60000, // optional: increase timeout to 60s
           },
           (error, result) => {
             if (error) reject(error);
@@ -101,6 +105,8 @@ if (token) {
        uploaderId,
       salt,
       iv,
+      mimeType,
+      fileSize
     });
 
       // ✅ send token back
