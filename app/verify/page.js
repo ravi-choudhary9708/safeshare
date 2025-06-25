@@ -211,7 +211,7 @@ const VerifyPageContent = () => {
                     <button disabled={loading} type="submit" className="w-full text-white bg-blue-600 hover:bg-blue-500 p-2 mt-4 rounded disabled:bg-blue-300">
                         {loading ? "verifying.." : "verify"}
                     </button>
-                    {error && <p className="text-red-600 mt-4">error</p>}
+                    {error && <p className="text-red-600 mt-4">{error}</p>}
 
 
                     {file && mode === "print" && (

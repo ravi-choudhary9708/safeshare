@@ -10,7 +10,18 @@ export default function Home() {
   const [access, setAccess] = useState("");
   const [publicId, setPublicId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [otp, setOtp] = useState("")
+  const [otp, setOtp] = useState("");
+   const [showQR, setShowQR] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+
+    // Generate QR Code using QR Server API
+  const generateQRCode = () => {
+    const shareLink = `${window.location.origin}/verify?otp=${otp}&fileId=${publicId}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareLink)}`;
+    setQrCodeUrl(qrUrl);
+    setShowQR(true);
+  };
+
 
 
   const handleUpload = async (e) => {
@@ -243,14 +254,7 @@ export default function Home() {
         {/* Shareable Link and WhatsApp Share */}
         {otp && publicId && mode === "share" && (
           <div className="mt-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
-            {/* File preview (assuming file.fileUrl is available after upload) */}
-            {/* <div className="border rounded-lg p-4 mb-4">
-              <img
-                src={file.fileUrl} // This URL needs to come from the backend response
-                alt="File preview"
-                className="w-full max-h-64 object-contain rounded"
-              />
-            </div> */}
+          
 
             <p className="mb-3 text-xl font-medium text-gray-800">
               🔗 Shareable Link:
@@ -276,6 +280,28 @@ export default function Home() {
               </button>
             </div>
 
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl text-xl transition duration-300 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                onClick={generateQRCode}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-7 w-7"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6z"
+                  />
+                </svg>
+                Generate QR Code
+              </button>
+
            
             <a
               className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl text-xl transition duration-300 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
@@ -295,6 +321,52 @@ export default function Home() {
               </svg>
               Share via WhatsApp
             </a>
+          </div>
+        )}
+
+
+
+
+
+
+
+
+
+ {showQR && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                  📱 Scan QR Code
+                </h3>
+                <div className="bg-white p-4 rounded-2xl shadow-inner mb-6 inline-block border-2 border-gray-100">
+                  <img
+                    src={qrCodeUrl}
+                    alt="QR Code"
+                    className="w-64 h-64 mx-auto"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <div className="w-64 h-64 mx-auto bg-gray-100 rounded-lg flex items-center justify-center" style={{display: 'none'}}>
+                    <p className="text-gray-500">QR Code Loading...</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-6 text-lg">
+                  Scan this QR code to access the shared file
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowQR(false)}
+                    className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl text-lg transition duration-300"
+                  >
+                    Close
+                  </button>
+                 
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </form>
