@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react";
+import { useState, Suspense,useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 const VerifyPageContent = () => {
@@ -10,18 +10,42 @@ const VerifyPageContent = () => {
     const [mode, setmode] = useState("");
     const [access, setaccess] = useState("");
     const [file, setfile] = useState(null);
+    
 
     const searchParams = useSearchParams();
     const fileId = searchParams.get("fileId");
+    const fetchOtp=searchParams.get("otp");
+
+     useEffect(() => {
+    if (fetchOtp) {
+      setotp(fetchOtp);
+    }
+  }, [fetchOtp]);
+  
+
+  let requestBody;
+
+if (mode === "share") {
+    requestBody = {
+        otp: fetchOtp
+    };
+} else {
+    requestBody = {
+        otp: otp // Assuming 'otp' here refers to a different variable than 'fetchOtp'
+    };
+}
+
+
 
     console.log("fileid", fileId)
     const handleVerify = async (e) => {
         e.preventDefault();
+        setloading(true);
         try {
             const res = await fetch("/api/verify/verifyFile", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ otp })
+                body: JSON.stringify(requestBody)
             })
 
             const data = await res.json()
@@ -39,6 +63,8 @@ const VerifyPageContent = () => {
         } catch (err) {
             seterror("something went wrong");
             setfile(null)
+        } finally{
+            setloading(false);
         }
 
     }

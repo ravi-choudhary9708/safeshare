@@ -49,7 +49,7 @@ const UploadFileSchema= new mongoose.Schema({
         default:Date.now(),
         expires:86400
     },
-      
+     expiryAt: { type: Date, required: false },
 })
 
 export default mongoose.models.UploadFile || mongoose.model("UploadFile",UploadFileSchema);

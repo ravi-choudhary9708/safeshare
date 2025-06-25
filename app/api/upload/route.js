@@ -15,6 +15,13 @@ export async function POST(req) {
         const file= formData.get("file");
         const mode= formData.get("mode");
         const access= formData.get("access");
+        const expiry= formData.get("expiry");
+
+        const expiryInHours = parseInt(expiry) || 24;
+
+const expiryAt = mode === "share"
+  ? new Date(Date.now() + expiryInHours * 60 * 60 * 1000)
+  : null;
       
 
           const authHeader = req.headers.get('authorization'); // ✅ correct way
@@ -86,7 +93,7 @@ export async function POST(req) {
         uploaderId,
         salt,
         iv,
-        
+        expiryAt
 
      })
 

@@ -13,6 +13,7 @@ export default function Home() {
   const [otp, setOtp] = useState("");
    const [showQR, setShowQR] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [expiry, setExpiry] = useState("")
 
     // Generate QR Code using QR Server API
   const generateQRCode = () => {
@@ -56,6 +57,7 @@ export default function Home() {
     formData.append("mode", mode);
  if (mode === "share") {
   formData.append("access", access);
+  formData.append("expiry", expiry);
 }
 
     setLoading(true);
@@ -226,6 +228,34 @@ export default function Home() {
               <option value="view">View Only</option>
               <option value="download">View & Download</option>
             </select>
+
+             <label
+              htmlFor="access-select"
+              className="block text-xl font-medium text-gray-800 mb-2"
+            >
+             Set Expiry
+            </label>
+
+            <select 
+                id="expiry"
+              value={expiry}
+              onChange={(e) => setExpiry(e.target.value)}
+              
+              className="w-full p-4 border border-gray-300 rounded-lg text-lg focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white pr-8"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 1rem center",
+                backgroundSize: "1.5em",
+              }}
+            >
+              <option value="24">24 Hours (Default)</option>
+           <option value="1">1 Hours</option>
+           <option value="6">6 Hours</option>
+          
+          <option value="48">2 Days</option>
+           <option value="168">7 Days</option>
+          </select>
           </div>
         )}
 
