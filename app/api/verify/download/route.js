@@ -18,20 +18,14 @@ export async function POST(req) {
     if(!file){
         return NextResponse.json({error:"otp or fileid invlaid"},{status:400})
     };
+
+     cloudinary.uploader.destroy(file.publicId,{resource_type:"raw"}).then(()=>console.log("cloudinary file delted")).catch((err)=>console.log("file not deleted",err))
+         Upload.deleteOne({publicId: file.publicId}).then(()=>console.log("file deleted from db")).catch((err)=>console.log("file not deletd from db",err));
 return NextResponse.json({ fileUrl: file.fileUrl,
   iv: file.iv,
   salt: file.salt,
   fileName: file.fileName,
   mimeType: file.mimeType, })
-
-  
-
-   
-
-    
-  
-
-
 
 
 
