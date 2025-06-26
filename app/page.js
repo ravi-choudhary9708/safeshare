@@ -1,7 +1,9 @@
 "use client";
 import { useState,useRef } from "react";
 
+
 export default function Home() {
+
 
   const fileInputRef=useRef(null);
 
@@ -11,11 +13,10 @@ export default function Home() {
   const [publicId, setPublicId] = useState("");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
-   const [showQR, setShowQR] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
-  const [expiry, setExpiry] = useState("")
+  const [expiry, setExpiry] = useState("");
 
-    // Generate QR Code using QR Server API
   const generateQRCode = () => {
     const shareLink = `${window.location.origin}/verify?otp=${otp}&fileId=${publicId}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareLink)}`;
@@ -99,6 +100,7 @@ export default function Home() {
   }
   return (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 font-sans">
+   
       <form
         onSubmit={handleUpload}
         className="bg-white p-8 sm:p-10 rounded-3xl shadow-xl w-full max-w-xl border border-gray-200"
@@ -122,7 +124,7 @@ export default function Home() {
               type="file"
               ref={fileInputRef}
               onChange={(e) => setFile(e.target.files[0])}
-              className="hidden" // Hide the actual file input
+              className="hidden"
               accept=".pdf, image/jpeg, image/png, text/plain, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document" // Specify accepted file types
             />
 
@@ -137,10 +139,10 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent re-triggering file input
+                    e.stopPropagation(); 
                     setFile(null);
                     if (fileInputRef.current) {
-                      fileInputRef.current.value = null; // Clear the input value
+                      fileInputRef.current.value = null; 
                     }
                   }}
                   className="mt-4 px-6 py-2 bg-red-500 text-white text-lg rounded-full shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition"
@@ -402,4 +404,6 @@ export default function Home() {
       </form>
     </div>
   );
+
+
 }

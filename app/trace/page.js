@@ -3,10 +3,12 @@
 import { verifyJWT } from "@/libs/jwt";
 import { jwtDecode } from "jwt-decode"; 
 import { useState,useEffect } from "react";
+import { useRouter } from "next/router";
 
 const Page = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    
 
     useEffect(() => {
       const token =localStorage.getItem("safeshare_token");
@@ -66,16 +68,11 @@ const Page = () => {
               <p className="text-red-600 mt-1">🗑 File was deleted after access</p>
             ) : (
               <>
-                <p>📁 File: {log.fileName}</p>
-                <a
-                  href={log.fileUrl}
-                  target="_blank"
-                  className="text-blue-600 underline"
-                >
-                  View File
-                </a>
+                <p> File: {log.fileName}</p>
+               
               </>
             )}
+            
           </div>
         ))
       )}

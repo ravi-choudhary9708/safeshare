@@ -31,7 +31,7 @@ if (mode === "share") {
     };
 } else {
     requestBody = {
-        otp: otp // Assuming 'otp' here refers to a different variable than 'fetchOtp'
+        otp: otp 
     };
 }
 
@@ -69,6 +69,7 @@ if (mode === "share") {
 
     }
     const handlePrint = async (e) => {
+        e.stopPropagation();
       try {
          const res = await fetch('/api/verify/print', {
         method: 'POST',
@@ -153,6 +154,7 @@ if (mode === "share") {
 
 
     const handleDownload = async (e) => {
+         e.stopPropagation();
      try {
         const res = await fetch("/api/verify/download",{
             method:"POST",
