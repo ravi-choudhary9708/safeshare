@@ -19,7 +19,7 @@ export default function Home() {
 
     // Generate QR Code using QR Server API
   const generateQRCode = () => {
-    const shareLink = `${window.location.origin}/verify?otp=${otp}&fileId=${publicId}`;
+    const shareLink = `${window.location.origin}/verify?otp=${otp}&public=${publicId}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareLink)}`;
     setQrCodeUrl(qrUrl);
     setShowQR(true);
@@ -82,7 +82,7 @@ const handleUpload = async (e) => {
     const res = await fetch("/api/upload", {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: formData,
+      body: formData
     });
 
     const data = await res.json();
@@ -311,7 +311,7 @@ const handleUpload = async (e) => {
               <input
                 type="text"
                 readOnly
-                value={`${window.location.origin}/verify?otp=${otp}&fileId=${publicId}`}
+                value={`${window.location.origin}/verify?otp=${otp}&public=${publicId}`}
                 id="share-link"
                 className="border border-gray-300 px-4 py-3 rounded-lg w-full text-lg bg-gray-100 text-gray-700 truncate"
               />
@@ -354,7 +354,7 @@ const handleUpload = async (e) => {
             <a
               className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl text-xl transition duration-300 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
               href={`https://wa.me/?text=${encodeURIComponent(
-                `Hi! I've shared a secure file with you. Click the link to access it:\n${window.location.origin}/verify?fileId=${publicId}\nYour OTP is: ${otp}`
+                `Hi! I've shared a secure file with you. Click the link to access it:\n${window.location.origin}/verify?publicId=${publicId}\nYour OTP is: ${otp}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"

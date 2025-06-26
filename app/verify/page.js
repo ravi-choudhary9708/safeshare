@@ -11,11 +11,14 @@ const VerifyPageContent = () => {
   const [mode, setMode] = useState("");
   const [access, setAccess] = useState("");
   const [file, setFile] = useState(null);
+  const [publicId, setpublicId] = useState("")
   const [decryptedFileBuffer, setDecryptedFileBuffer] = useState(null);
 
   const searchParams = useSearchParams();
-  const fileId = searchParams.get("fileId");
-  const fetchOtp = searchParams.get("otp");
+  const fileId = searchParams.get("public");
+
+  console.log("file id public",fileId)
+
 
  
 
@@ -28,7 +31,7 @@ const VerifyPageContent = () => {
       const res = await fetch("/api/verify/verifyFile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp }),
+        body: JSON.stringify({ publicIds: fileId }),
       });
 
       const data = await res.json();
@@ -36,12 +39,66 @@ const VerifyPageContent = () => {
       if (!res.ok) {
         setError(data.error || "File not found");
         setFile(null);
+       
+        setLoading(false);
+        return;
+      }
+
+     
+      // const fileRes = await fetch(data.fileUrl);
+      // if (!fileRes.ok) {
+      //   setError("Failed to fetch encrypted file");
+      //   setLoading(false);
+      //   return;
+      // }
+
+      // const encryptedArrayBuffer = await fileRes.arrayBuffer();
+
+  
+
+      // const decryptedBuffer = await decryptBufferClient(
+      //   encryptedArrayBuffer,
+      //    otp,
+      //   data.iv,
+      //   data.salt
+      // );
+
+      // setDecryptedFileBuffer(decryptedBuffer);
+
+
+      setFile(data);
+      setMode(data.mode);
+      setAccess(data.access);
+    
+
+    } catch (err) {
+      console.error("Error in handleVerify:", err);
+      setError("Something went wrong");
+      setFile(null);
+      setDecryptedFileBuffer(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrint =async () => {
+    const res = await fetch("/api/verify/print", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "File not found");
+       
         setDecryptedFileBuffer(null);
         setLoading(false);
         return;
       }
 
-      const fileRes = await fetch(data.fileUrl);
+       const fileRes = await fetch(data.fileUrl);
       if (!fileRes.ok) {
         setError("Failed to fetch encrypted file");
         setLoading(false);
@@ -60,24 +117,7 @@ const VerifyPageContent = () => {
       );
 
       setDecryptedFileBuffer(decryptedBuffer);
-      setFile(data);
-      setMode(data.mode);
-      setAccess(data.access);
-    } catch (err) {
-      console.error("Error in handleVerify:", err);
-      setError("Something went wrong");
-      setFile(null);
-      setDecryptedFileBuffer(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handlePrint =async () => {
-    if (!decryptedFileBuffer || !file) {
-      setError("No decrypted file available to print");
-      return;
-    }
 
     const blob = new Blob([decryptedFileBuffer], { type: file.mimeType });
     const url = URL.createObjectURL(blob);
@@ -134,58 +174,132 @@ const VerifyPageContent = () => {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (e) => {
+    e.preventDefault(); 
 
     try {
-          await fetch("/api/verify/print", {
+       const res=   await fetch("/api/verify/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp }),
+        body: JSON.stringify({ publicIds: fileId}),
       });
         
-    } catch (error) {
-        console.log("some error on file deletaion",error)
-    }
+   if (!res.ok) {
+        setError(data.error || "File not found");
+       
+        setDecryptedFileBuffer(null);
+        setLoading(false);
+        return;
+      }
 
-    if (!decryptedFileBuffer || !file) {
+      const data=await res.json();
+
+       const fileRes = await fetch(data.fileUrl);
+       console.log('file res bhai:',fileRes);
+       
+      if (!fileRes.ok) {
+        setError("Failed to fetch encrypted file");
+        setLoading(false);
+        return;
+      }
+
+      const encryptedArrayBuffer = await fileRes.arrayBuffer();
+
+  
+      console.log("Encrypted URL aa rhe h:", data.fileUrl);
+console.log("IV:", data.iv);
+console.log("Salt:", data.salt);
+
+     let decryptedBuffer = null;
+
+try {
+  decryptedBuffer = await decryptBufferClient(
+    encryptedArrayBuffer,
+    otp,
+    data.iv,
+    data.salt
+  );
+  console.log("Decryption successful:", decryptedBuffer);
+} catch (err) {
+  console.error("Decryption failed:", err.message);
+  setError("Invalid OTP or corrupted file.");
+  setLoading(false);
+  return;
+}
+
+
+
+
+ if (!decryptedBuffer ) {
       setError("No decrypted file available to download");
       return;
     }
 
-    const blob = new Blob([decryptedFileBuffer], { type: file.mimeType });
+    const blob = new Blob([decryptedBuffer], { type: data.mimeType });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = file.fileName || "downloaded_file";
+    a.download = data.fileName || "downloaded_file";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
     URL.revokeObjectURL(url);
-  };
 
-  const handleView = async () => {
-    try {
-          await fetch("/api/verify/print", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp }),
-      });
-        
+
     } catch (error) {
         console.log("some error on file deletaion",error)
     }
 
-    if (!decryptedFileBuffer || !file) {
+   
+  };
+
+  const handleView = async (e) => {
+    e.preventDefault(); 
+   
+        const res  =  await fetch("/api/verify/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({  publicIds: fileId }),
+      });
+      const data=  await res.json();
+
+     console.log("Encrypted URL aa rhe h:", data.fileUrl);
+         console.log("IV:", data.iv);
+        console.log("Salt:", data.salt);
+      
+      
+
+       const fileRes = await fetch(data.fileUrl);
+
+     const encryptedArrayBuffer = await fileRes.arrayBuffer();
+
+  
+     
+
+     let decryptedBuffer = null;
+
+
+  decryptedBuffer = await decryptBufferClient(
+    encryptedArrayBuffer,
+    otp,
+    data.iv,
+    data.salt
+  );
+  console.log("Decryption successful:", decryptedBuffer);
+
+    if (!decryptedBuffer ) {
       setError("No decrypted file available to view");
       return;
     }
 
-    const blob = new Blob([decryptedFileBuffer], { type: file.mimeType });
+    const blob = new Blob([decryptedBuffer], { type: file.mimeType });
     const url = URL.createObjectURL(blob);
 
     const viewWindow = window.open(url, "_blank");
+    const a= document.createElement("a");
+    a.href=url
     if (viewWindow) {
       viewWindow.focus();
       setTimeout(() => URL.revokeObjectURL(url), 30000);
@@ -221,6 +335,7 @@ const VerifyPageContent = () => {
         {file && mode === "print" && (
           <div className="mt-4 space-y-4">
             <button
+            type="button"
               onClick={handlePrint}
               className="w-full font-bold text-white bg-pink-600 hover:bg-pink-400 p-2 rounded"
             >
@@ -232,6 +347,7 @@ const VerifyPageContent = () => {
         {file && mode === "share" && (
           <div className="mt-4 flex gap-2">
             <button
+             type="button"
               onClick={handleView}
               className="w-[50vh] font-bold text-white bg-purple-600 hover:bg-purple-400 p-2 rounded"
             >
@@ -239,6 +355,8 @@ const VerifyPageContent = () => {
             </button>
             {access === "download" && (
               <button
+              
+              type="button"
                 onClick={handleDownload}
                 className="w-[50vh] font-bold text-white bg-green-600 hover:bg-green-400 p-2 rounded"
               >

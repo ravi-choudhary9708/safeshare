@@ -14,7 +14,7 @@ export async function POST(req) {
     const expiry = formData.get("expiry");
     const salt = formData.get("salt");
     const iv = formData.get("iv");
-    const otp = formData.get("otp");
+   
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -25,6 +25,7 @@ export async function POST(req) {
     const fileName = file.name.replace(/\s/g, "");
 
     await dbConnect();
+  
 
     // Upload to Cloudinary
     const streamUpload = () => {
@@ -45,6 +46,8 @@ export async function POST(req) {
     };
 
     const result = await streamUpload();
+
+    console.log("cloud result",result);
 
     // Handle JWT token
     const authHeader = req.headers.get("authorization");
@@ -72,7 +75,7 @@ export async function POST(req) {
 
     // Save to DB
     await Upload.create({
-        otp,
+        
       fileUrl: result.secure_url,
       publicId: result.public_id,
       fileName,
@@ -87,18 +90,7 @@ export async function POST(req) {
     });
 
     // Generate token if not present
-    if (!token) {
-      const newToken = signJWT({ uploaderId });
-      return NextResponse.json({
-        message: "Uploaded successfully",
-        fileName,
-        mode,
-        access,
-        fileUrl: result.secure_url,
-        publicId: result.public_id,
-        token: newToken,
-      });
-    }
+  
 
     return NextResponse.json({
       message: "Uploaded successfully",

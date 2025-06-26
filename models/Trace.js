@@ -14,10 +14,7 @@ const TraceLogSchema= new mongoose.Schema({
         type:String,
         required:true
     },
-    otpUsed:{
-        type:String,
-        required:true
-    },
+   
     accessTime:{
         type:Date,
         required:true

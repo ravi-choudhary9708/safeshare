@@ -6,10 +6,7 @@ const UploadFileSchema= new mongoose.Schema({
         type:String,
         required:true
     },
-    otp:{
-        type:String,
-        required:true
-    },
+   
     fileName:{
         type:String,
         required:true
