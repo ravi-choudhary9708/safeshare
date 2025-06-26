@@ -244,7 +244,7 @@ if (mode === "share") {
 
                     {file && mode === "print" && (
                         <div className="mt-4 space-y-4">
-                            <button onClick={handlePrint} className="w-full font-bold text-white bg-pink-600 hover:bg-pink-400 p-2  rounded">
+                            <button type="button" onClick={handlePrint} className="w-full font-bold text-white bg-pink-600 hover:bg-pink-400 p-2  rounded">
                                 print
                             </button>
 
@@ -252,11 +252,11 @@ if (mode === "share") {
                     )}
                     {file && mode == "share" && (
                         <div className="mt-4 flex gap-2">
-                            <button onClick={handleView} className="w-[50vh]  font-bold text-white bg-purple-600 hover:bg-purple-400 p-2  rounded">
+                            <button type="button" onClick={handleView} className="w-[50vh]  font-bold text-white bg-purple-600 hover:bg-purple-400 p-2  rounded">
                                 view
                             </button>
                             {access == "download" && (
-                                <button onClick={handleDownload} className="w-[50vh] font-bold text-white bg-green-600 hover:bg-green-400 p-1  rounded">
+                                <button type="button" onClick={handleDownload} className="w-[50vh] font-bold text-white bg-green-600 hover:bg-green-400 p-1  rounded">
                                     Download
                                 </button>
                             )}
