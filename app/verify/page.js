@@ -69,7 +69,7 @@ if (mode === "share") {
 
     }
     const handlePrint = async (e) => {
-        e.stopPropagation();
+         e.preventDefault();
       try {
          const res = await fetch('/api/verify/print', {
         method: 'POST',
@@ -154,7 +154,7 @@ if (mode === "share") {
 
 
     const handleDownload = async (e) => {
-         e.stopPropagation();
+      e.preventDefault();
      try {
         const res = await fetch("/api/verify/download",{
             method:"POST",
@@ -189,6 +189,7 @@ if (mode === "share") {
 
     }
     const handleView = async (e) => {
+       e.preventDefault();
 
  try {
         const res = await fetch("/api/verify/print",{
