@@ -75,6 +75,11 @@ const handleUpload = async (e) => {
     formData.append("expiry", expiry);
   }
 
+  if(mode=="print"){
+    otp:printOtp;
+    formData.append("printOtp",printOtp);
+  }
+
   setLoading(true);
 
   try {
