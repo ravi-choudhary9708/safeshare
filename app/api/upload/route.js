@@ -1,109 +1,111 @@
-
 import { signJWT, verifyJWT } from "@/libs/jwt";
 import Upload from "@/models/Upload";
-import { encryptBuffer } from "@/utils/aes";
-import { generateOtp } from "@/utils/generateOtp";
 import { NextResponse } from "next/server";
 import { cloudinary } from "@/libs/cloudinary";
-import { Readable } from 'stream';
+import { Readable } from "stream";
 import { dbConnect } from "@/libs/dbConnection";
 
 export async function POST(req) {
- 
-    try {
-        const formData= await req.formData();
-        const file= formData.get("file");
-        const mode= formData.get("mode");
-        const access= formData.get("access");
-        const expiry= formData.get("expiry");
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file");
+    const mode = formData.get("mode");
+    const access = formData.get("access");
+    const expiry = formData.get("expiry");
+    const salt = formData.get("salt");
+    const iv = formData.get("iv");
+   
 
-        const expiryInHours = parseInt(expiry) || 24;
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
 
-const expiryAt = mode === "share"
-  ? new Date(Date.now() + expiryInHours * 60 * 60 * 1000)
-  : null;
-      
+    const byteArray = await file.arrayBuffer();
+    const buffer = Buffer.from(byteArray);
+    const fileName = file.name.replace(/\s/g, "");
 
-          const authHeader = req.headers.get('authorization'); // ✅ correct way
-          const token = authHeader?.replace('Bearer ', ''); 
+    await dbConnect();
+  
 
-        console.log("file",file);
-        console.log("access",access);
-         console.log("token bhai",token);
-         
-      const fileName= file.name.replace(/\s/g,"")
-         
-      if(!file){
-        return NextResponse.json({error:"no file provided"},{status:400})
-      };
-
-      const byte= await file.arrayBuffer();
-      const buffer=Buffer.from(byte);
-
-      await dbConnect();
-
-      const otp = generateOtp();
-
-      const {encryptedBuffer,salt,iv}= await encryptBuffer(buffer,otp);
-
-       const streamUpload = () => {
+    // Upload to Cloudinary
+    const streamUpload = () => {
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
-            resource_type: 'raw',
-            folder: 'fileUpload', // ✅ Cloudinary folder
-            timeout: 60000, // optional: increase timeout to 60s
+            resource_type: "raw",
+            folder: "fileUpload",
+            timeout: 60000,
           },
           (error, result) => {
             if (error) reject(error);
             else resolve(result);
           }
         );
-
-        Readable.from(encryptedBuffer).pipe(stream);
+        Readable.from(buffer).pipe(stream);
       });
     };
 
     const result = await streamUpload();
-  console.log("result",result)
+
+    console.log("cloud result",result);
+
+    // Handle JWT token
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
     let uploaderId;
-    if(token){
-        try {
-            const decoded=verifyJWT(token);
-            uploaderId=decoded?.uploaderId;
 
-        } catch (error) {
-            console.warn("invalid token",error.message)
-        }
+    if (token) {
+      try {
+        const decoded = verifyJWT(token);
+        uploaderId = decoded?.uploaderId;
+      } catch (err) {
+        console.warn("Invalid token:", err.message);
+      }
     }
 
-    if(!uploaderId){
-        uploaderId=crypto.randomUUID();
+    if (!uploaderId) {
+      uploaderId = crypto.randomUUID();
     }
 
-     await Upload.create({
-        otp,
-        fileUrl:result.secure_url,
-        publicId: result.public_id,
-        fileName,
-        mode,
-        access,
-        mimeType:file.type,
-        fileSize:file.size,
-        uploaderId,
-        salt,
-        iv,
-        expiryAt
+    const expiryInHours = parseInt(expiry) || 24;
+    const expiryAt =
+      mode === "share"
+        ? new Date(Date.now() + expiryInHours * 60 * 60 * 1000)
+        : null;
 
-     })
+    // Save to DB
+    await Upload.create({
+        
+      fileUrl: result.secure_url,
+      publicId: result.public_id,
+      fileName,
+      mode,
+      access,
+      mimeType: file.type,
+      fileSize: file.size,
+      uploaderId,
+      salt,
+      iv,
+      expiryAt,
+    });
 
-     if(!token){
-        const newtoken = signJWT({uploaderId});
-        return NextResponse.json({message:"uploaded successfully",otp,fileName,mode,access,fileUrl:result.secure_url,publicId: result.public_id,token:newtoken})
-     }else{
-         return NextResponse.json({message:"uploaded successfully",otp,fileName,mode,access,fileUrl:result.secure_url,publicId: result.public_id,token})
-     }
-    } catch (error) {
-        return NextResponse.json({error:"upload failed",message:error.message},{status:400})
-    }
+    // Generate token if not present
+  
+
+    return NextResponse.json({
+      message: "Uploaded successfully",
+      fileName,
+      mode,
+      access,
+      fileUrl: result.secure_url,
+      publicId: result.public_id,
+      token,
+    });
+  } catch (error) {
+    console.error("Upload Error:", error);
+    return NextResponse.json(
+      { error: "Upload failed", message: error.message },
+      { status: 400 }
+    );
+  }
 }

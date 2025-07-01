@@ -1,14 +1,12 @@
 import mongoose from "mongoose";
 
 const UploadFileSchema= new mongoose.Schema({
-    otp:{
-        type:String,
-        required:true
-    },
+   
     fileUrl:{
         type:String,
         required:true
     },
+   
     fileName:{
         type:String,
         required:true

@@ -1,5 +1,7 @@
 "use client";
 import { useState,useRef } from "react";
+import { encryptBufferClient, generateOtp } from "@/utils/aesClient";
+
 
 
 export default function Home() {
@@ -18,7 +20,7 @@ export default function Home() {
   const [expiry, setExpiry] = useState("");
 
   const generateQRCode = () => {
-    const shareLink = `${window.location.origin}/verify?otp=${otp}&fileId=${publicId}`;
+    const shareLink = `${window.location.origin}/verify?otp=${otp}&public=${publicId}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareLink)}`;
     setQrCodeUrl(qrUrl);
     setShowQR(true);
@@ -26,73 +28,94 @@ export default function Home() {
 
 
 
-  const handleUpload = async (e) => {
-    e.preventDefault();
+const handleUpload = async (e) => {
+  e.preventDefault();
 
-    if (!file) {
-      alert("Please select a file.");
-      return;
-    }
+  if (!file) {
+    alert("Please select a file.");
+    return;
+  }
 
-    const token = localStorage.getItem("safeshare_token");
+  // Supported file types
+  const supportedTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "text/plain",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
 
-    // Supported file types
-    const supportedTypes = [
-      "application/pdf",
-      "image/jpeg",
-      "image/png",
-      "text/plain",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Add .docx
-    ];
+  if (!supportedTypes.includes(file.type)) {
+    alert("Unsupported file type!");
+    return;
+  }
 
-    if (!supportedTypes.includes(file.type)) {
-      alert(
-        "Unsupported file type! Please upload PDF, JPG, PNG, TXT, DOC, or DOCX."
-      );
-      return;
-    }
+  const token = localStorage.getItem("safeshare_token");
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("mode", mode);
- if (mode === "share") {
-  formData.append("access", access);
-  formData.append("expiry", expiry);
-}
+  // You can generate OTP only for encryption (client-side only)
+  const otp = generateOtp();
 
-    setLoading(true);
+  // Step 1: Encrypt the file
+  const arrayBuffer = await file.arrayBuffer();
+  const { encryptedBuffer, salt, iv } = await encryptBufferClient(arrayBuffer, otp);
 
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      });
+  const encryptedFile = new File([encryptedBuffer], file.name, {
+    type: file.type,
+  });
 
-      const data = await res.json();
-  console.log("data",data)
-      if (res.ok) {
-        setOtp(data.otp);
-        setPublicId(data.publicId);
+  // Step 2: Prepare FormData (WITHOUT OTP)
+  const formData = new FormData();
+  formData.append("file", encryptedFile);
+  formData.append("mode", mode);
+  formData.append("salt", salt);
+  formData.append("iv", iv);
 
-     
-        if (data.token) {
-          localStorage.setItem("safeshare_token", data.token);
-          console.log("Token saved to localStorage");
-        } else {
-          console.warn(" Token not received from server");
-        }
+  if (mode === "share") {
+    formData.append("access", access);
+    formData.append("expiry", expiry);
+  }
+
+  if(mode=="print"){
+    otp:printOtp;
+    formData.append("printOtp",printOtp);
+  }
+
+  setLoading(true);
+
+  try {
+    // Step 3: Send file with uploader token
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData
+    });
+
+    const data = await res.json();
+    console.log("data", data);
+
+    if (res.ok) {
+      setOtp(otp); // Use OTP client-side only
+      setPublicId(data.publicId);
+
+      // Step 4: Save new token if returned
+      if (data.token) {
+        localStorage.setItem("safeshare_token", data.token);
+        console.log("Token saved to localStorage");
       } else {
-        alert(data.error || "An error occurred during upload.");
+        console.warn("Token not received");
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert("An error occurred during upload. Please try again.");
-    } finally {
-      setLoading(false);
+    } else {
+      alert(data.error || "Upload failed.");
     }
-  };
+  } catch (err) {
+    console.error("Upload error:", err.message);
+    alert("Something went wrong. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   const handleChooseFileClick=(e)=>{
@@ -295,7 +318,7 @@ export default function Home() {
               <input
                 type="text"
                 readOnly
-                value={`${window.location.origin}/verify?otp=${otp}&fileId=${publicId}`}
+                value={`${window.location.origin}/verify?otp=${otp}&public=${publicId}`}
                 id="share-link"
                 className="border border-gray-300 px-4 py-3 rounded-lg w-full text-lg bg-gray-100 text-gray-700 truncate"
               />
@@ -338,7 +361,7 @@ export default function Home() {
             <a
               className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl text-xl transition duration-300 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
               href={`https://wa.me/?text=${encodeURIComponent(
-                `Hi! I've shared a secure file with you. Click the link to access it:\n${window.location.origin}/verify?fileId=${publicId}\nYour OTP is: ${otp}`
+                `Hi! I've shared a secure file with you. Click the link to access it:\n${window.location.origin}/verify?publicId=${publicId}\nYour OTP is: ${otp}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
