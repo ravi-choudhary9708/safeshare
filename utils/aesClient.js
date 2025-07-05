@@ -79,7 +79,7 @@ export async function decryptBufferClient(encryptedArrayBuffer, otp, ivBase64, s
 
 
 export function generateOtp(length=6){
-    const chars='123456789qwertyuioplkjhgfdsazxcvbnmMAQWERTYUIPOLKJHGFDSZXCVB'
+    const chars='123456789'
     let otp ='';
     for(let i=0;i<length;i++){
         otp+=chars.charAt(Math.floor(Math.random()*chars.length))
