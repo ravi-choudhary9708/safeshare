@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { decryptBufferClient } from "@/utils/aesClient";
 
 const VerifyPageContent = () => {
-  const [otp, setOtp] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mode, setMode] = useState("");
@@ -13,6 +13,7 @@ const VerifyPageContent = () => {
   const [file, setFile] = useState(null);
   const [publicId, setpublicId] = useState("")
   const [decryptedFileBuffer, setDecryptedFileBuffer] = useState(null);
+  const [otp, setotp] = useState("");
 
   const searchParams = useSearchParams();
   const fileId = searchParams.get("public");
@@ -31,7 +32,7 @@ const VerifyPageContent = () => {
       const res = await fetch("/api/verify/verifyFile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ publicIds: fileId }),
+        body: JSON.stringify({ publicIds: fileId,otp }),
       });
 
       const data = await res.json();
@@ -85,7 +86,7 @@ const VerifyPageContent = () => {
     const res = await fetch("/api/verify/print", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId }),
+        body: JSON.stringify({ otp }),
       });
 
       const data = await res.json();
@@ -95,10 +96,12 @@ const VerifyPageContent = () => {
        
         setDecryptedFileBuffer(null);
         setLoading(false);
+       
         return;
       }
 
        const fileRes = await fetch(data.fileUrl);
+       console.log("fileres print",fileRes)
       if (!fileRes.ok) {
         setError("Failed to fetch encrypted file");
         setLoading(false);
@@ -107,19 +110,22 @@ const VerifyPageContent = () => {
 
       const encryptedArrayBuffer = await fileRes.arrayBuffer();
 
+      console.log("encripted array print",encryptedArrayBuffer)
+
   
 
       const decryptedBuffer = await decryptBufferClient(
         encryptedArrayBuffer,
-         otp,
+        otp,
         data.iv,
         data.salt
       );
 
-      setDecryptedFileBuffer(decryptedBuffer);
+      console.log("decripted array buffer aa rha hai",decryptedBuffer)
 
 
-    const blob = new Blob([decryptedFileBuffer], { type: file.mimeType });
+
+    const blob = new Blob([decryptedBuffer], { type: file.mimeType });
     const url = URL.createObjectURL(blob);
 
     const printWindow = window.open("", "_blank");
@@ -162,16 +168,7 @@ const VerifyPageContent = () => {
     printWindow.document.close();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-    try {
-         const res = await fetch("/api/verify/print", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp }),
-      });
-        
-    } catch (error) {
-        console.log("some error on file deletaion",error)
-    }
+   
   };
 
   const handleDownload = async (e) => {
@@ -207,8 +204,8 @@ const VerifyPageContent = () => {
 
   
       console.log("Encrypted URL aa rhe h:", data.fileUrl);
-console.log("IV:", data.iv);
-console.log("Salt:", data.salt);
+       console.log("IV:", data.iv);
+      console.log("Salt:", data.salt);
 
      let decryptedBuffer = null;
 
@@ -317,7 +314,7 @@ try {
         <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">Verify File</h2>
         <input
           value={otp}
-          onChange={(e) => setOtp(e.target.value)}
+          onChange={(e) => setotp(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-400"
           type="text"
           placeholder="Enter OTP"

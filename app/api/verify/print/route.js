@@ -10,10 +10,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { publicId, publicIds } = await req.json();
-      const finalPublicId = publicId || publicIds;
+    const { otp } = await req.json();
+     
       
-      const file = await Upload.findOne({ publicId: finalPublicId });
+      const file = await Upload.findOne({ printOtp:otp});
 
      if(!file){
         return NextResponse.json({error:"file not found in db"},{status:400});
@@ -24,7 +24,7 @@ export async function POST(req) {
  
 
     cloudinary.uploader.destroy(file.publicId,{resource_type:"raw"}).then(()=>console.log("cloudinary file delted")).catch((err)=>console.log("file not deleted",err))
-     Upload.deleteOne({otp}).then(()=>console.log("file deleted from db")).catch((err)=>console.log("file not deletd from db",err));
+     Upload.deleteOne({printOtp:otp}).then(()=>console.log("file deleted from db")).catch((err)=>console.log("file not deletd from db",err));
 
    return NextResponse.json({ fileUrl: file.fileUrl,
   iv: file.iv,

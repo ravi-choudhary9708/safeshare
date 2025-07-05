@@ -77,8 +77,7 @@ const handleUpload = async (e) => {
   }
 
   if(mode=="print"){
-    otp:printOtp;
-    formData.append("printOtp",printOtp);
+    formData.append("printOtp",otp);
   }
 
   setLoading(true);

@@ -6,14 +6,16 @@ import TraceLog from "@/models/Trace";
 
 export async function POST(req) {
  
-const { publicId, publicIds } = await req.json();
+const { publicId, publicIds,otp } = await req.json();
 const finalPublicId = publicId || publicIds;
 
-const file = await Upload.findOne({ publicId: finalPublicId });
+const file = await Upload.findOne({ publicId: finalPublicId }) || await Upload.findOne({ printOtp:otp });
+
 
 
 
  console.log("file id verify",publicIds);
+ console.log("printotp verified",otp);
 
    // Handle JWT token
      const authHeader = req.headers.get("authorization");

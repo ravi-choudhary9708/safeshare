@@ -11,6 +11,10 @@ const UploadFileSchema= new mongoose.Schema({
         type:String,
         required:true
     },
+    printOtp:{
+        type:String,
+     
+    },
     mode:{
         type:String,
         enum:['print','share'],

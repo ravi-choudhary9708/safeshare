@@ -14,6 +14,10 @@ export async function POST(req) {
     const expiry = formData.get("expiry");
     const salt = formData.get("salt");
     const iv = formData.get("iv");
+
+      const printOtp= formData.get("printOtp");
+
+
    
 
     if (!file) {
@@ -75,7 +79,7 @@ export async function POST(req) {
 
     // Save to DB
     await Upload.create({
-        
+       printOtp: mode=="print"?printOtp:"",
       fileUrl: result.secure_url,
       publicId: result.public_id,
       fileName,
